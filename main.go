@@ -40,6 +40,18 @@ func child(command ...string) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
+	must(syscall.Sethostname([]byte("container")))
+	must(syscall.Chroot("./debian_fs"))
+	must(os.Chdir("./debian_fs"))
+	must(syscall.Mount("proc", "proc", "proc", 0, ""))
+	// Temporary filesystem
+	must(syscall.Mount("something", "mytemp", "tmpfs", 0, ""))
+
+	must(cmd.Run())
+
+	// Cleanup mount
+	must(syscall.Unmount("proc", 0))
+	must(syscall.Unmount("mytemp", 0))
 }
 
 
